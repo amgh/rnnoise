@@ -51,7 +51,9 @@ jobs:
           echo "Running autogen.sh..."
           chmod +x autogen.sh
           ./autogen.sh
-          echo "Configuring build with --disable-dependency-tracking..."
+          echo "Configuring build with optimization flags..."
+          CFLAGS="-O3 -march=native -ffast-math -fPIC" \
+          LDFLAGS="-shared -Wl,--out-implib,librnnoise.lib" \
           ./configure --host=x86_64-w64-mingw32 --disable-dependency-tracking
 
       # 6. Build RNNoise DLL with Parallel Jobs
