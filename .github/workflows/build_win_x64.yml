@@ -14,16 +14,7 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      # 2. Cache MSYS2 Packages to Speed Up Builds
-      - name: Cache MSYS2 Packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/msys2
-          key: ${{ runner.os }}-msys2-packages
-          restore-keys: |
-            ${{ runner.os }}-msys2-
-
-      # 3. Set Up MSYS2 with mingw64 and Install Required Packages
+      # 2. Set Up MSYS2 with mingw64 and Install Required Packages
       - name: Set up MSYS2 with mingw64
         uses: msys2/setup-msys2@v2
         with:
@@ -36,7 +27,7 @@ jobs:
             pkg-config
             make
 
-      # 4. Verify MSYS2 Installation
+      # 3. Verify MSYS2 Installation
       - name: Verify MSYS2 Installation
         shell: msys2 {0}
         run: |
@@ -46,13 +37,14 @@ jobs:
           pkg-config --version
           make --version
 
-      # 5. Clean Previous Builds
+      # 4. Clean Previous Builds
       - name: Clean previous builds
         shell: msys2 {0}
         run: |
+          echo "Cleaning previous builds..."
           make clean || echo "No previous builds to clean."
 
-      # 6. Run autogen.sh and Configure with Disabled Dependency Tracking
+      # 5. Run autogen.sh and Configure with Disabled Dependency Tracking
       - name: Run autogen.sh and configure
         shell: msys2 {0}
         run: |
@@ -62,12 +54,19 @@ jobs:
           echo "Configuring build with --disable-dependency-tracking..."
           ./configure --host=x86_64-w64-mingw32 --disable-dependency-tracking
 
-      # 7. Build RNNoise DLL with Parallel Jobs
+      # 6. Build RNNoise DLL with Parallel Jobs
       - name: Build RNNoise DLL
         shell: msys2 {0}
         run: |
           echo "Building RNNoise DLL..."
           make -j$(nproc)
+
+      # 7. List Build Directory Contents (New Step)
+      - name: List Build Directory Contents
+        shell: msys2 {0}
+        run: |
+          echo "Listing contents of build directory..."
+          ls -R .
 
       # 8. Test the Built DLL (Optional)
       - name: Test RNNoise DLL
@@ -99,4 +98,3 @@ jobs:
           name: msys2-logs
           path: |
             /var/log/msys2.log
-            # Add other relevant log paths if necessary
