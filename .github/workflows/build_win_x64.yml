@@ -20,11 +20,19 @@ jobs:
         install: >-
           mingw-w64-x86_64-toolchain
           make
-          cmake
+          autoconf
+          automake
+          libtool
 
     - name: Add mingw64 to PATH
       run: |
         echo "C:/msys64/mingw64/bin" >> $GITHUB_PATH
+
+    - name: Run autogen.sh and configure
+      run: |
+        pacman -S --noconfirm pkg-config
+        ./autogen.sh
+        ./configure --host=x86_64-w64-mingw32
 
     - name: Build RNNoise DLL
       run: |
