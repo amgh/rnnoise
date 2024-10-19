@@ -39,9 +39,11 @@ jobs:
       - name: Verify MSYS2 Installation
         shell: msys2 {0}
         run: |
-          pacman -V
+          echo "Verifying MSYS2 Installation..."
+          pacman --version
           gcc --version
           pkg-config --version
+          make --version
 
       # 5. Clean Previous Builds
       - name: Clean previous builds
@@ -49,24 +51,29 @@ jobs:
         run: |
           make clean || echo "No previous builds to clean."
 
-      # 6. Run autogen.sh and Configure
+      # 6. Run autogen.sh and Configure with Disabled Dependency Tracking
       - name: Run autogen.sh and configure
         shell: msys2 {0}
         run: |
+          echo "Running autogen.sh..."
           chmod +x autogen.sh
           ./autogen.sh
-          ./configure --host=x86_64-w64-mingw32
+          echo "Configuring build with --disable-dependency-tracking..."
+          ./configure --host=x86_64-w64-mingw32 --disable-dependency-tracking
 
       # 7. Build RNNoise DLL with Parallel Jobs
       - name: Build RNNoise DLL
         shell: msys2 {0}
-        run: make -j$(nproc)
+        run: |
+          echo "Building RNNoise DLL..."
+          make -j$(nproc)
 
       # 8. Test the Built DLL (Optional)
       - name: Test RNNoise DLL
         shell: msys2 {0}
         run: |
           echo "Testing RNNoise DLL..."
+          echo "No tests implemented. Skipping."
 
       # 9. Upload RNNoise DLL as Artifact
       - name: Upload RNNoise DLL
@@ -75,7 +82,15 @@ jobs:
           name: rnnoise-dll
           path: .libs/rnnoise.dll
 
-      # 10. (Optional) Upload MSYS2 Logs for Debugging
+      # 10. Upload config.log on Failure
+      - name: Upload config.log on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: config.log
+          path: config.log
+
+      # 11. (Optional) Upload MSYS2 Logs for Debugging
       - name: Upload MSYS2 Logs
         if: failure()
         uses: actions/upload-artifact@v4
@@ -83,3 +98,4 @@ jobs:
           name: msys2-logs
           path: |
             /var/log/msys2.log
+            # Add other relevant log paths if necessary
