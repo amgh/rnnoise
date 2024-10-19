@@ -11,7 +11,7 @@ jobs:
     
     steps:
     - name: Checkout source code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Set up MSYS2 with mingw64
       uses: msys2/setup-msys2@v2
