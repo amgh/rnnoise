@@ -8,41 +8,87 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    
+
     steps:
-    - name: Checkout source code
-      uses: actions/checkout@v4
+      # 1. Checkout Source Code
+      - name: Checkout source code
+        uses: actions/checkout@v4
 
-    - name: Set up MSYS2 with mingw64
-      uses: msys2/setup-msys2@v2
-      with:
-        update: true
-        install: >-
-          mingw-w64-x86_64-toolchain
-          make
-          autoconf
-          automake
-          libtool
+      # 2. Cache MSYS2 Packages to Speed Up Builds
+      - name: Cache MSYS2 Packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/msys2
+          key: ${{ runner.os }}-msys2-${{ hashFiles('**/msys2_packages.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-msys2-
 
-    - name: Add mingw64 to PATH
-      run: |
-        echo "C:/msys64/mingw64/bin" >> $GITHUB_PATH
+      # 3. Generate a File Listing Required MSYS2 Packages
+      - name: Generate MSYS2 Packages List
+        run: |
+          echo "mingw-w64-x86_64-toolchain" >> msys2_packages.txt
+          echo "autoconf" >> msys2_packages.txt
+          echo "automake" >> msys2_packages.txt
+          echo "libtool" >> msys2_packages.txt
+          echo "pkg-config" >> msys2_packages.txt
+          # Add any additional dependencies here
 
-    - name: Run autogen.sh and configure
-      run: |
-        pacman -S --noconfirm pkg-config
-        ./autogen.sh
-        ./configure --host=x86_64-w64-mingw32
+      # 4. Set Up MSYS2 with mingw64
+      - name: Set up MSYS2 with mingw64
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: |
+            $(cat msys2_packages.txt)
 
-    - name: Build RNNoise DLL
-      run: |
-        mkdir build
-        cd build
-        cmake -G "MSYS Makefiles" -DCMAKE_SYSTEM_NAME=Windows ..
-        make
+      # 5. Verify MSYS2 Installation
+      - name: Verify MSYS2 Installation
+        shell: msys2 {0}
+        run: |
+          pacman -V
+          gcc --version
+          pkg-config --version
 
-    - name: Upload RNNoise DLL
-      uses: actions/upload-artifact@v4
-      with:
-        name: rnnoise-dll
-        path: build/librnnoise.dll
+      # 6. Clean Previous Builds
+      - name: Clean previous builds
+        shell: msys2 {0}
+        run: |
+          make clean || echo "No previous builds to clean."
+
+      # 7. Run autogen.sh and Configure
+      - name: Run autogen.sh and configure
+        shell: msys2 {0}
+        run: |
+          chmod +x autogen.sh
+          ./autogen.sh
+          ./configure --host=x86_64-w64-mingw32
+
+      # 8. Build RNNoise DLL with Parallel Jobs
+      - name: Build RNNoise DLL
+        shell: msys2 {0}
+        run: make -j$(nproc)
+
+      # 9. Test the Built DLL (Optional)
+      - name: Test RNNoise DLL
+        shell: msys2 {0}
+        run: |
+          # Replace the following with actual test commands
+          echo "Testing RNNoise DLL..."
+          # Example: ./test_rnnoise.dll
+
+      # 10. Upload RNNoise DLL as Artifact
+      - name: Upload RNNoise DLL
+        uses: actions/upload-artifact@v4
+        with:
+          name: rnnoise-dll
+          path: .libs/rnnoise.dll
+
+      # 11. (Optional) Upload MSYS2 Logs for Debugging
+      - name: Upload MSYS2 Logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: msys2-logs
+          path: |
+            /var/log/msys2.log
+            # Add other relevant log paths if necessary
