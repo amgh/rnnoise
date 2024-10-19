@@ -34,7 +34,6 @@ jobs:
             automake
             libtool
             pkg-config
-            # Add any additional dependencies here
 
       # 4. Verify MSYS2 Installation
       - name: Verify MSYS2 Installation
@@ -67,9 +66,7 @@ jobs:
       - name: Test RNNoise DLL
         shell: msys2 {0}
         run: |
-          # Replace the following with actual test commands
           echo "Testing RNNoise DLL..."
-          # Example: ./test_rnnoise.dll
 
       # 9. Upload RNNoise DLL as Artifact
       - name: Upload RNNoise DLL
@@ -86,4 +83,3 @@ jobs:
           name: msys2-logs
           path: |
             /var/log/msys2.log
-            # Add other relevant log paths if necessary
