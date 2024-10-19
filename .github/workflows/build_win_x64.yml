@@ -19,29 +19,24 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/msys2
-          key: ${{ runner.os }}-msys2-${{ hashFiles('**/msys2_packages.txt') }}
+          key: ${{ runner.os }}-msys2-packages
           restore-keys: |
             ${{ runner.os }}-msys2-
 
-      # 3. Generate a File Listing Required MSYS2 Packages
-      - name: Generate MSYS2 Packages List
-        run: |
-          echo "mingw-w64-x86_64-toolchain" >> msys2_packages.txt
-          echo "autoconf" >> msys2_packages.txt
-          echo "automake" >> msys2_packages.txt
-          echo "libtool" >> msys2_packages.txt
-          echo "pkg-config" >> msys2_packages.txt
-          # Add any additional dependencies here
-
-      # 4. Set Up MSYS2 with mingw64
+      # 3. Set Up MSYS2 with mingw64 and Install Required Packages
       - name: Set up MSYS2 with mingw64
         uses: msys2/setup-msys2@v2
         with:
           update: true
           install: |
-            $(cat msys2_packages.txt)
+            mingw-w64-x86_64-toolchain
+            autoconf
+            automake
+            libtool
+            pkg-config
+            # Add any additional dependencies here
 
-      # 5. Verify MSYS2 Installation
+      # 4. Verify MSYS2 Installation
       - name: Verify MSYS2 Installation
         shell: msys2 {0}
         run: |
@@ -49,13 +44,13 @@ jobs:
           gcc --version
           pkg-config --version
 
-      # 6. Clean Previous Builds
+      # 5. Clean Previous Builds
       - name: Clean previous builds
         shell: msys2 {0}
         run: |
           make clean || echo "No previous builds to clean."
 
-      # 7. Run autogen.sh and Configure
+      # 6. Run autogen.sh and Configure
       - name: Run autogen.sh and configure
         shell: msys2 {0}
         run: |
@@ -63,12 +58,12 @@ jobs:
           ./autogen.sh
           ./configure --host=x86_64-w64-mingw32
 
-      # 8. Build RNNoise DLL with Parallel Jobs
+      # 7. Build RNNoise DLL with Parallel Jobs
       - name: Build RNNoise DLL
         shell: msys2 {0}
         run: make -j$(nproc)
 
-      # 9. Test the Built DLL (Optional)
+      # 8. Test the Built DLL (Optional)
       - name: Test RNNoise DLL
         shell: msys2 {0}
         run: |
@@ -76,14 +71,14 @@ jobs:
           echo "Testing RNNoise DLL..."
           # Example: ./test_rnnoise.dll
 
-      # 10. Upload RNNoise DLL as Artifact
+      # 9. Upload RNNoise DLL as Artifact
       - name: Upload RNNoise DLL
         uses: actions/upload-artifact@v4
         with:
           name: rnnoise-dll
           path: .libs/rnnoise.dll
 
-      # 11. (Optional) Upload MSYS2 Logs for Debugging
+      # 10. (Optional) Upload MSYS2 Logs for Debugging
       - name: Upload MSYS2 Logs
         if: failure()
         uses: actions/upload-artifact@v4
