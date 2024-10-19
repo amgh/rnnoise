@@ -34,6 +34,7 @@ jobs:
             automake
             libtool
             pkg-config
+            make
 
       # 4. Verify MSYS2 Installation
       - name: Verify MSYS2 Installation
