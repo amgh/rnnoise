@@ -47,7 +47,7 @@ jobs:
           ./autogen.sh
           echo "Configuring build with optimization flags..."
           mkdir build
-          ./configure prefix=${GITHUB_WORKSPACE}\build --host=x86_64-w64-mingw32 --disable-dependency-tracking
+          ./configure prefix=${GITHUB_WORKSPACE}/build --host=x86_64-w64-mingw32 --disable-dependency-tracking
 
       # 6. Build RNNoise DLL with Parallel Jobs
       - name: Build RNNoise DLL
