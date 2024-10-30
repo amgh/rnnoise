@@ -37,12 +37,6 @@ jobs:
           pkg-config --version
           make --version
 
-      # 4. Clean Previous Builds
-      - name: Clean previous builds
-        shell: msys2 {0}
-        run: |
-          echo "Cleaning previous builds..."
-          make clean || echo "No previous builds to clean."
 
       # 5. Run autogen.sh and Configure with Disabled Dependency Tracking
       - name: Run autogen.sh and configure
@@ -51,7 +45,10 @@ jobs:
           echo "Running autogen.sh..."
           chmod +x autogen.sh
           ./autogen.sh
-          ./configure --host=x86_64-w64-mingw32 --disable-dependency-tracking
+          echo "Configuring build with optimization flags..."
+          mkdir build
+          cd build
+          ../configure --host=x86_64-w64-mingw32 --disable-dependency-tracking
 
       # 6. Build RNNoise DLL with Parallel Jobs
       - name: Build RNNoise DLL
@@ -59,6 +56,12 @@ jobs:
         run: |
           echo "Building RNNoise DLL..."
           make -j$(nproc)
+
+      - name: Install RNNoise DLL
+        shell: msys2 {0}
+        run: |
+          echo "Installing RNNoise DLL..."
+          make Install -j$(nproc)
 
       # 7. List Build Directory Contents (New Step)
       - name: List Build Directory Contents
