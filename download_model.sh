@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-hash=`cat model_version`
+hash=`cat model_version | tr -d '\r'`
 model=rnnoise_data-$hash.tar.gz
 
 if [ ! -f $model ]; then
