@@ -1,0 +1,27 @@
+name: Windows Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            base-devel
+            mingw-w64-x86_64-toolchain
+            wget
+            git
+
+      - name: Build
+        shell: msys2 {0}
+        run: |
+          ./autogen.sh
+          ./configure
+          make
+          make install
